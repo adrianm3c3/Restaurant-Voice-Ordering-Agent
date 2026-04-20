@@ -1,5 +1,7 @@
 from speech_recording import record_audio
 from speech_totext import transcribe_file
+from speech_debugger import debug_output_local
+
 
 def run_speech_to_text(duration=5, sample_rate=16000, filename="audio.wav"):
     audio_file = record_audio(
@@ -7,7 +9,14 @@ def run_speech_to_text(duration=5, sample_rate=16000, filename="audio.wav"):
         duration=duration,
         sample_rate=sample_rate
     )
+
     text = transcribe_file(audio_file)
+
+    
+    debug_output_local(text)
+
+   
+
     return text
 
 if __name__ == "__main__":

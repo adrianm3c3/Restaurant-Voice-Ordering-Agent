@@ -4,23 +4,31 @@ import threading
 
 from speech_controller import run_speech_to_text
 
+
 def update_status(msg):
     status_label.config(text=f"Status: {msg}")
+
 
 def run_stt():
     try:
         update_status("Recording...")
+
+        
         text = run_speech_to_text()
 
         transcript_box.delete("1.0", tk.END)
         transcript_box.insert(tk.END, text)
 
         update_status("Done")
+
     except Exception as e:
         update_status(f"Error: {e}")
+        print(f"[DEBUG ERROR] {e}")
+
 
 def start_stt():
     threading.Thread(target=run_stt, daemon=True).start()
+
 
 root = tk.Tk()
 root.title("Speech to Text")
