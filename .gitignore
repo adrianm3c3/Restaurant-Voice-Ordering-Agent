@@ -1,0 +1,7 @@
+venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+voice/audio.wav
+chroma_store/
+data/vector_store/chroma_db/
