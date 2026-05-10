@@ -1,0 +1,177 @@
+[
+  {
+    "id": "pizza_cheese",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "cheese",
+    "text": "cheese pizza pizza includes mozzarella, pizza sauce. Prices are small: $8.00, medium: $10.00, large: $12.00. This is a vegetarian pizza. Contains dairy. Contains tomato. Sauce information: pizza sauce."
+  },
+  {
+    "id": "pizza_pepperoni",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "pepperoni",
+    "text": "pepperoni pizza pizza includes mozzarella, pizza sauce, pepperoni. Prices are small: $9.00, medium: $11.00, large: $13.00. Contains pork. Contains meat. Contains dairy. Contains tomato. Sauce information: pizza sauce. This is one of the restaurant's popular items."
+  },
+  {
+    "id": "pizza_meat_lovers",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "meat lovers",
+    "text": "meat lovers pizza pizza includes mozzarella, pepperoni, sausage, bacon, ham, pizza sauce. Prices are small: $11.00, medium: $13.00, large: $15.00. Contains pork. Contains meat. Contains dairy. Contains tomato. Sauce information: pizza sauce. This pizza is meat-heavy and contains pork."
+  },
+  {
+    "id": "pizza_veggie",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "veggie",
+    "text": "veggie pizza pizza includes mozzarella, mushrooms, onions, bell peppers, black olives, pizza sauce. Prices are small: $10.00, medium: $12.00, large: $14.00. This is a vegetarian pizza. Contains dairy. Contains tomato. Sauce information: pizza sauce."
+  },
+  {
+    "id": "pizza_hawaiian",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "hawaiian",
+    "text": "hawaiian pizza pizza includes mozzarella, ham, pineapple, pizza sauce. Prices are small: $10.00, medium: $12.00, large: $14.00. Contains pork. Contains meat. Contains dairy. Contains tomato. Sauce information: pizza sauce. This pizza is sweet and savory."
+  },
+  {
+    "id": "pizza_bbq_chicken",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "bbq chicken",
+    "text": "bbq chicken pizza pizza includes mozzarella, bbq sauce, chicken, onions. Prices are small: $11.00, medium: $13.00, large: $15.00. Contains chicken. Contains meat. Contains dairy. Sauce information: bbq sauce. This pizza is sweet and smoky."
+  },
+  {
+    "id": "pizza_buffalo_chicken",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "buffalo chicken",
+    "text": "buffalo chicken pizza pizza includes mozzarella, buffalo sauce, chicken. Prices are small: $11.00, medium: $13.00, large: $15.00. This item has ingredients commonly associated with spicy flavor. Contains chicken. Contains meat. Contains dairy. Sauce information: buffalo sauce. This pizza is spicy and tangy. This is one of the restaurant's popular items."
+  },
+  {
+    "id": "pizza_supreme",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "supreme",
+    "text": "supreme pizza pizza includes mozzarella, pepperoni, sausage, mushrooms, onions, bell peppers, black olives, pizza sauce. Prices are small: $12.00, medium: $14.00, large: $16.00. Contains pork. Contains meat. Contains dairy. Contains tomato. Sauce information: pizza sauce. This pizza has both meat and vegetables."
+  },
+  {
+    "id": "pizza_margherita",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "margherita",
+    "text": "margherita pizza pizza includes mozzarella, tomato sauce, basil. Prices are small: $9.00, medium: $11.00, large: $13.00. This is a vegetarian pizza. Contains dairy. Contains tomato. Sauce information: tomato sauce. This pizza is a vegetarian pizza with tomato sauce, mozzarella, and basil. It contains dairy and is not vegan."
+  },
+  {
+    "id": "pizza_white_pizza",
+    "type": "menu_item",
+    "category": "pizzas",
+    "name": "white pizza",
+    "text": "white pizza pizza includes ricotta, mozzarella, garlic sauce. Prices are small: $10.00, medium: $12.00, large: $14.00. This is a vegetarian pizza. Contains dairy. Contains garlic. Sauce information: garlic sauce. This pizza uses garlic sauce instead of tomato sauce."
+  },
+  {
+    "id": "crust_options",
+    "type": "menu_section",
+    "category": "crusts",
+    "name": "crusts",
+    "text": "Crust options are thin crust: additional cost $0.00, hand tossed: additional cost $0.00, pan crust: additional cost $1.00, stuffed crust: additional cost $2.00, gluten-free crust: additional cost $2.00. Gluten-free crust is available."
+  },
+  {
+    "id": "topping_options",
+    "type": "menu_section",
+    "category": "toppings",
+    "name": "toppings",
+    "text": "Available toppings are pepperoni: $1.50, sausage: $1.50, bacon: $1.50, ham: $1.50, grilled chicken: $2.00, beef: $2.00, mushrooms: $1.00 vegetarian, onions: $0.50 vegetarian, bell peppers: $0.50 vegetarian, black olives: $1.00 vegetarian, jalapeños: $0.50 spicy, spinach: $1.00 vegetarian, tomatoes: $0.50 vegetarian, pineapple: $1.00 vegetarian, extra cheese: $1.50, parmesan: $1.00, ricotta: $1.50, feta: $1.50, garlic drizzle: $0.50, ranch drizzle: $0.50, bbq drizzle: $0.50, buffalo drizzle: $0.50 spicy."
+  },
+  {
+    "id": "side_options",
+    "type": "menu_section",
+    "category": "sides",
+    "name": "sides",
+    "text": "Available sides are breadsticks: $5.00; cheesy bread: $6.00; garlic knots: $5.00; mozzarella sticks: $7.00; chicken wings: 6 piece: $8.00, 12 piece: $14.00; side salad: $4.00; fries: $4.00."
+  },
+  {
+    "id": "drink_options",
+    "type": "menu_section",
+    "category": "drinks",
+    "name": "drinks",
+    "text": "Available drinks are coke: $2.00, diet coke: $2.00, sprite: $2.00, dr pepper: $2.00, lemonade: $2.00, iced tea: $2.00, orange soda: $2.00, bottled water: $1.50."
+  },
+  {
+    "id": "dessert_options",
+    "type": "menu_section",
+    "category": "desserts",
+    "name": "desserts",
+    "text": "Available desserts are chocolate chip cookie: $4.00, brownie: $4.00, cinnamon sticks: $5.00, cheesecake: $6.00, tiramisu: $7.00."
+  },
+  {
+    "id": "faq_gluten",
+    "type": "faq",
+    "category": "allergy",
+    "name": "gluten_free",
+    "text": "Gluten-free crust is available. Cross-contamination information is not guaranteed."
+  },
+  {
+    "id": "faq_vegetarian",
+    "type": "faq",
+    "category": "dietary",
+    "name": "vegetarian",
+    "text": "Vegetarian options include cheese pizza, veggie pizza, margherita pizza, white pizza, and vegetable toppings such as mushrooms, onions, bell peppers, black olives, spinach, tomatoes, and pineapple. Vegetarian items may still contain dairy."
+  },
+  {
+    "id": "faq_vegan",
+    "type": "faq",
+    "category": "dietary",
+    "name": "vegan",
+    "text": "The menu does not list any fully vegan pizzas. Cheese-containing pizzas are not vegan."
+  },
+  {
+    "id": "faq_spicy",
+    "type": "faq",
+    "category": "spicy_food",
+    "name": "spicy",
+    "text": "Spicy and hot options include jalapeños, buffalo drizzle, and buffalo chicken pizza."
+  },
+  {
+    "id": "faq_nutrition",
+    "type": "faq",
+    "category": "nutrition",
+    "name": "nutrition_information",
+    "text": "The menu does not list nutrition facts such as calories, protein, carbohydrates, fat, sodium, or macro information."
+  },
+  {
+    "id": "faq_meat_and_pork",
+    "type": "faq",
+    "category": "dietary",
+    "name": "meat_and_pork",
+    "text": "Pizzas containing pork include pepperoni, meat lovers, hawaiian, and supreme. Pizzas containing chicken include bbq chicken and buffalo chicken. Meat lovers is the most meat-heavy pizza."
+  },
+  {
+    "id": "faq_tomato_sauce",
+    "type": "faq",
+    "category": "sauces",
+    "name": "tomato_sauce",
+    "text": "Pizzas with tomato-based sauce include cheese pizza, pepperoni pizza, supreme pizza, veggie pizza, hawaiian pizza, meat lovers pizza, and margherita pizza. Cheese, pepperoni, supreme, veggie, hawaiian, and meat lovers use pizza sauce. Margherita uses tomato sauce. White pizza uses garlic sauce instead of tomato sauce. BBQ chicken pizza uses bbq sauce. Buffalo chicken pizza uses buffalo sauce."
+  },
+  {
+    "id": "faq_recommendations",
+    "type": "faq",
+    "category": "recommendations",
+    "name": "popular_recommendations",
+    "text": "Popular recommended items include pepperoni pizza, buffalo chicken pizza, mozzarella sticks, and chocolate chip cookie."
+  },
+  {
+    "id": "faq_modifications",
+    "type": "faq",
+    "category": "modifications",
+    "name": "modifications",
+    "text": "Customers can add or remove toppings from pizzas. Adding toppings may increase the price. Removing toppings does not reduce the price."
+  },
+  {
+    "id": "faq_crust_modifications",
+    "type": "faq",
+    "category": "modifications",
+    "name": "crust_modifications",
+    "text": "Customers can change the crust on a pizza. Pan crust, stuffed crust, and gluten-free crust may cost extra."
+  }
+]
