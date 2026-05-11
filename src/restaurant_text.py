@@ -93,6 +93,12 @@ REMOVE_TOPPING_RESPONSE_TEMPLATE = "Removed {toppings} from your pizza."
 ADD_TOPPING_RESPONSE_TEMPLATE = "Added {toppings} to your pizza."
 UPDATED_CRUST_TEMPLATE = "Updated your pizza to {crust}."
 LAST_REMOVED_TEMPLATE = "The last item removed was {item}."
+CHICKEN_WINGS_SIZE_PROMPT = (
+    "Would you like 6 piece or 12 piece chicken wings?"
+)
+CHICKEN_WINGS_SIZE_REPROMPT = (
+    "Please choose either 6 piece or 12 piece chicken wings."
+)
 
 ORDER_COUNT_TEMPLATE = (
     "You currently have {pizza_count} pizza(s) "
@@ -270,6 +276,10 @@ ADD_ITEM_PHRASES = [
     "hook me up",
     "lemme get",
     "throw in",
+    "i'll take",
+    "i will take",
+    "let me take",
+    "give me",
 ]
 
 REMOVE_ITEM_PHRASES = [
@@ -295,6 +305,26 @@ TOTAL_PHRASES = [
     "my total",
 ]
 
+ORDER_TOTAL_QUESTION_PHRASES = [
+    "how much is everything",
+    "how much is that",
+    "how much is all",
+    "how much is the order",
+    "how much is my order",
+    "how much is the total",
+    "how much for everything",
+    "how much for the order",
+    "how much will that be",
+    "how much will it be",
+    "how much altogether",
+    "how much in total",
+    "what is my total",
+    "what's my total",
+    "what is the total",
+    "what's the total",
+    "what do i owe",
+]
+
 ORDER_COUNT_PHRASES = [
     "how many pizzas do i have",
     "how many pizzas are in my order",
@@ -315,6 +345,36 @@ ORDER_SUMMARY_PHRASES = [
     "what do i have",
     "what have i ordered",
 ]
+
+DESCRIBE_PIZZA_PHRASES = [
+    "what's on my pizza",
+    "what is on my pizza",
+    "what's in my pizza",
+    "what is in my pizza",
+    "what toppings are on my pizza",
+    "what toppings are in my pizza",
+    "what toppings does my pizza have",
+    "what's in the pizza",
+    "what is in the pizza",
+    "what's on the pizza",
+    "what is on the pizza",
+    "describe my pizza",
+    "tell me about my pizza",
+    "what kind of pizza did i order",
+    "what pizza did i order",
+]
+
+DESCRIBE_PIZZA_NO_PIZZA_MESSAGE = (
+    "You haven't ordered a pizza yet."
+)
+
+DESCRIBE_PIZZA_TEMPLATE = (
+    "Your {size} {base} pizza comes with {ingredients} on a {crust}."
+)
+
+DESCRIBE_PIZZA_EXTRAS_SUFFIX = " It also has {toppings}."
+
+DESCRIBE_PIZZA_REMOVALS_SUFFIX = " You asked to hold the {removals}."
 
 ASK_LAST_REMOVED_PHRASES = [
     "which pizza was removed",

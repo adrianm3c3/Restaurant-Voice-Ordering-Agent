@@ -8,9 +8,15 @@ from src.rag_qa import answer_rag_question
 from src.restaurant_text import (
     ADDED_ITEM_TEMPLATE,
     ADD_TOPPING_RESPONSE_TEMPLATE,
+    CHICKEN_WINGS_SIZE_PROMPT,
+    CHICKEN_WINGS_SIZE_REPROMPT,
     CHECKOUT_COMPLETION_MARKERS,
     CHECKOUT_EMPTY_MESSAGE,
     CHECKOUT_THANK_YOU_MESSAGE,
+    DESCRIBE_PIZZA_EXTRAS_SUFFIX,
+    DESCRIBE_PIZZA_NO_PIZZA_MESSAGE,
+    DESCRIBE_PIZZA_REMOVALS_SUFFIX,
+    DESCRIBE_PIZZA_TEMPLATE,
     DETAILED_MENU_MARKERS,
     EMPTY_ORDER_MESSAGE,
     EXIT_WORDS,
@@ -70,6 +76,12 @@ def build_total_response(result):
     )
 
 
+def format_topping_for_customer(topping):
+    if topping == "mozzarella":
+        return "cheese"
+    return topping
+
+
 def pluralize_word(word, qty):
     if qty == 1:
         return SINGULAR_SPECIAL_CASES.get(word, word)
@@ -107,10 +119,16 @@ def summarize_item(item):
         ]
 
         if toppings:
-            parts.append("plus " + ", ".join(toppings))
+            parts.append(
+                "plus "
+                + ", ".join(format_topping_for_customer(t) for t in toppings)
+            )
 
         if removals:
-            parts.append("no " + ", ".join(removals))
+            parts.append(
+                "no "
+                + ", ".join(format_topping_for_customer(r) for r in removals)
+            )
 
         return " ".join(parts)
 
@@ -152,6 +170,66 @@ def build_order_summary(order):
         + "; ".join(summarize_item(item) for item in order)
         + "."
     )
+
+
+def join_natural_list(items):
+    items = [str(x) for x in items if x]
+    if not items:
+        return ""
+    if len(items) == 1:
+        return items[0]
+    if len(items) == 2:
+        return f"{items[0]} and {items[1]}"
+    return ", ".join(items[:-1]) + f", and {items[-1]}"
+
+
+def find_last_pizza(order):
+    for item in reversed(order):
+        if item.get("type") == "pizza":
+            return item
+    return None
+
+
+def build_describe_pizza_response(order, menu):
+    pizza = find_last_pizza(order)
+    if not pizza:
+        return DESCRIBE_PIZZA_NO_PIZZA_MESSAGE
+
+    size = pizza.get("size", CONFIG["menu_defaults"]["default_pizza_size"])
+    base = pizza.get("base", CONFIG["menu_defaults"]["default_pizza_base"])
+    crust = pizza.get("crust", CONFIG["menu_defaults"]["default_crust"])
+    extras = pizza.get("toppings", []) or []
+    removals = pizza.get("removals", []) or []
+
+    base_ingredients = menu["pizzas"].get(base, {}).get("ingredients", [])
+    base_ingredients = [
+        ing for ing in base_ingredients if ing not in removals
+    ]
+
+    response = DESCRIBE_PIZZA_TEMPLATE.format(
+        size=size,
+        base=base,
+        ingredients=join_natural_list(base_ingredients) or "the standard ingredients",
+        crust=crust,
+    )
+
+    if extras:
+        response += DESCRIBE_PIZZA_EXTRAS_SUFFIX.format(
+            toppings=join_natural_list(
+                format_topping_for_customer(topping)
+                for topping in extras
+            ),
+        )
+
+    if removals:
+        response += DESCRIBE_PIZZA_REMOVALS_SUFFIX.format(
+            removals=join_natural_list(
+                format_topping_for_customer(removal)
+                for removal in removals
+            ),
+        )
+
+    return response
 
 
 def count_total_items(order):
@@ -247,7 +325,32 @@ def is_checkout_complete_response(response):
     return any(marker in lower_response for marker in CHECKOUT_COMPLETION_MARKERS)
 
 
+def parse_wing_size_response(user_text):
+    text = user_text.lower().strip()
+
+    if "12" in text or "twelve" in text:
+        return "12 piece"
+
+    if "6" in text or "six" in text:
+        return "6 piece"
+
+    return None
+
+
 def handle_user_input(user_text, order_manager, menu, state):
+
+    pending_wing_item = state.get("pending_wing_item")
+    if pending_wing_item:
+        wing_size = parse_wing_size_response(user_text)
+
+        if not wing_size:
+            return CHICKEN_WINGS_SIZE_REPROMPT
+
+        pending_wing_item["size"] = wing_size
+        pending_wing_item.pop("needs_size_confirmation", None)
+        state["pending_wing_item"] = None
+        order_manager.add_item(pending_wing_item)
+        return ADDED_ITEM_TEMPLATE.format(item=summarize_item(pending_wing_item))
 
     parsed = parse_intent(user_text, menu)
 
@@ -258,6 +361,15 @@ def handle_user_input(user_text, order_manager, menu, state):
 
     if intent == "add_item":
         item = parsed["item"]
+
+        if (
+            item.get("type") == "side"
+            and item.get("name") == "chicken wings"
+            and item.get("needs_size_confirmation")
+        ):
+            state["pending_wing_item"] = item
+            return CHICKEN_WINGS_SIZE_PROMPT
+
         order_manager.add_item(item)
         return ADDED_ITEM_TEMPLATE.format(item=summarize_item(item))
 
@@ -278,7 +390,10 @@ def handle_user_input(user_text, order_manager, menu, state):
 
         state["last_modified"] = modified
 
-        toppings_text = ", ".join(toppings)
+        toppings_text = ", ".join(
+            format_topping_for_customer(topping)
+            for topping in toppings
+        )
 
         if parsed.get("action") in {"remove_topping", "remove_toppings"}:
             return REMOVE_TOPPING_RESPONSE_TEMPLATE.format(
@@ -384,6 +499,10 @@ def handle_user_input(user_text, order_manager, menu, state):
         order = order_manager.get_order()
         return build_order_summary(order)
 
+    if intent == "describe_last_pizza":
+        order = order_manager.get_order()
+        return build_describe_pizza_response(order, menu)
+
     if intent == "ask_last_removed":
         last_removed = state.get("last_removed")
 
@@ -425,10 +544,10 @@ def handle_user_input(user_text, order_manager, menu, state):
 
 
 def speak_or_print(response, use_voice):
+    print("Assistant:", response)
+
     if use_voice and speak:
         speak(response)
-    else:
-        print("Assistant:", response)
 
 
 def run_agent(use_voice=True):
@@ -436,6 +555,7 @@ def run_agent(use_voice=True):
     state = {
         "last_removed": None,
         "last_modified": None,
+        "pending_wing_item": None,
     }
 
     restaurant_name = CONFIG["restaurant"]["name"]
@@ -462,4 +582,4 @@ def run_agent(use_voice=True):
 
 
 if __name__ == "__main__":
-    run_agent(use_voice=False)
+    run_agent(use_voice=CONFIG["voice"]["tts_enabled"])

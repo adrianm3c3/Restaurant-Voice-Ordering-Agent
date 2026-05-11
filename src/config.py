@@ -5,6 +5,19 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+# Load variables from a project-root .env file (if present) before any
+# os.getenv() calls below. This must happen early so every CONFIG value
+# can pick up its override. python-dotenv is a hard dependency listed
+# in requirements.txt; if it's missing we silently skip rather than
+# crash, so the agent can still run with shell-exported variables.
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(BASE_DIR / ".env", override=False)
+except ImportError:
+    pass
+
+
 def get_bool_env(name, default=False):
     value = os.getenv(name)
 
@@ -244,6 +257,19 @@ CONFIG = {
         "asr_enabled": get_bool_env(
             "ASR_ENABLED",
             True
+        ),
+
+        "tts_rate": int(
+            os.getenv("TTS_RATE", "175")
+        ),
+
+        "tts_volume": float(
+            os.getenv("TTS_VOLUME", "1.0")
+        ),
+
+        "tts_voice_id": os.getenv(
+            "TTS_VOICE_ID",
+            None
         ),
     },
 

@@ -10,11 +10,13 @@ from src.restaurant_text import (
     ASK_LAST_REMOVED_PHRASES,
     CHECKOUT_PHRASES,
     CRUST_CHANGE_PHRASES,
+    DESCRIBE_PIZZA_PHRASES,
     MENU_PRICE_MARKERS,
     MENU_QUERY_PHRASES,
     NAME_VARIANTS,
     ORDER_COUNT_PHRASES,
     ORDER_SUMMARY_PHRASES,
+    ORDER_TOTAL_QUESTION_PHRASES,
     PIZZA_REFERENCE_PHRASES,
     REMOVE_ITEM_PHRASES,
     REMOVE_TOPPING_PHRASES,
@@ -115,6 +117,9 @@ def parse_direct_retrieval_qa(text):
 
 
 def parse_direct_total_or_checkout(text):
+    if any(phrase in text for phrase in ORDER_TOTAL_QUESTION_PHRASES):
+        return {"intent": "get_total"}
+
     if any(marker in text for marker in MENU_PRICE_MARKERS):
         return {
             "intent": "retrieval_qa",
@@ -140,6 +145,13 @@ def parse_direct_order_count(text):
 def parse_direct_order_summary(text):
     if any(phrase in text for phrase in ORDER_SUMMARY_PHRASES):
         return {"intent": "get_order_summary"}
+
+    return None
+
+
+def parse_direct_describe_pizza(text):
+    if any(phrase in text for phrase in DESCRIBE_PIZZA_PHRASES):
+        return {"intent": "describe_last_pizza"}
 
     return None
 
@@ -172,23 +184,22 @@ def parse_direct_add(text, menu):
                 }
 
                 if name == "chicken wings":
-                    wing_size = CONFIG["menu_defaults"]["default_wing_size"]
-
                     if (
                         re.search(r"\b12\s*piece\b", text)
                         or re.search(r"\b12\s*wings\b", text)
                     ):
-                        wing_size = "12 piece"
+                        item["size"] = "12 piece"
                         item["quantity"] = 1
 
                     elif (
                         re.search(r"\b6\s*piece\b", text)
                         or re.search(r"\b6\s*wings\b", text)
                     ):
-                        wing_size = "6 piece"
+                        item["size"] = "6 piece"
                         item["quantity"] = 1
 
-                    item["size"] = wing_size
+                    else:
+                        item["needs_size_confirmation"] = True
 
                 return {"intent": "add_item", "item": item}
 
@@ -234,7 +245,17 @@ def parse_direct_pizza_modification(text, menu):
 
     matched_toppings = []
 
+    if (
+        has_remove_action
+        and re.search(r"\bcheese\b", text)
+        and not re.search(r"\b(extra|more)\s+cheese\b", text)
+    ):
+        matched_toppings.append("mozzarella")
+
     for topping in menu["toppings_price"].keys():
+        if topping == "extra cheese" and "mozzarella" in matched_toppings:
+            continue
+
         for variant in expand_name_variants(topping):
             if re.search(rf"\b{re.escape(variant)}\b", text):
                 matched_toppings.append(topping)
@@ -351,6 +372,10 @@ def parse_intent(user_text, menu):
     if direct:
         return direct
 
+    direct = parse_direct_describe_pizza(text)
+    if direct:
+        return direct
+
     direct = parse_direct_retrieval_qa(text)
     if direct:
         return direct
@@ -406,6 +431,7 @@ def validate_parsed_intent(parsed, menu):
         "retrieval_qa",
         "get_order_count",
         "get_order_summary",
+        "describe_last_pizza",
         "ask_last_removed",
         "modify_last_pizza",
         "change_pizza_crust",
@@ -472,7 +498,15 @@ def validate_parsed_intent(parsed, menu):
         }:
             return {"intent": "unknown"}
 
-        valid_toppings = set(menu["toppings_price"].keys())
+        removable_base_ingredients = {
+            ingredient
+            for pizza in menu["pizzas"].values()
+            for ingredient in pizza.get("ingredients", [])
+        }
+        valid_toppings = (
+            set(menu["toppings_price"].keys())
+            | removable_base_ingredients
+        )
 
         if toppings is None:
             toppings = [topping] if topping else []
@@ -497,6 +531,7 @@ def validate_parsed_intent(parsed, menu):
         "checkout",
         "get_order_count",
         "get_order_summary",
+        "describe_last_pizza",
         "ask_last_removed",
         "unknown",
     }:
