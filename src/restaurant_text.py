@@ -35,11 +35,7 @@ EXIT_WORDS = {
     "exit",
 }
 
-TOTAL_TEMPLATE = (
-    "Your subtotal is {subtotal}, "
-    "tax is {tax}, "
-    "and your total is {total}."
-)
+TOTAL_TEMPLATE = "Your total is {total}."
 
 GREETING_TEMPLATE = (
     "Hello, welcome to {restaurant_name}. "
@@ -58,6 +54,157 @@ CHECKOUT_EMPTY_MESSAGE = (
 )
 
 CHECKOUT_THANK_YOU_MESSAGE = "Thank you for your order."
+
+# =========================
+# Checkout flow (name, pickup time, payment, split bill)
+# =========================
+
+CHECKOUT_CANCEL_WORDS = {
+    "cancel",
+    "nevermind",
+    "never mind",
+    "stop",
+    "go back",
+}
+
+CHECKOUT_CANCELLED_MESSAGE = (
+    "No problem, I've cancelled the checkout. "
+    "Let me know what else you'd like to do."
+)
+
+CHECKOUT_TOTAL_AND_NAME_PROMPT = (
+    "{summary} {totals} "
+    "Can I get a name for the order?"
+)
+
+CHECKOUT_NAME_REPROMPT = (
+    "Sorry, I didn't catch that. What name should I put on the order?"
+)
+
+CHECKOUT_PICKUP_PROMPT = (
+    "Thanks, {name}. What time would you like to pick up your order?"
+)
+
+CHECKOUT_PICKUP_REPROMPT = (
+    "Sorry, what pickup time works for you?"
+)
+
+CHECKOUT_PAYMENT_PROMPT = (
+    "Got it, pickup at {pickup_time}. "
+    "Will you be paying with cash or card?"
+)
+
+CHECKOUT_PAYMENT_REPROMPT = (
+    "Please choose either cash or card."
+)
+
+CHECKOUT_SPLIT_PROMPT = (
+    "Paying by {payment}. Would you like to split the bill?"
+)
+
+CHECKOUT_SPLIT_REPROMPT = (
+    "Sorry, would you like to split the bill? Please say yes or no."
+)
+
+CHECKOUT_SPLIT_COUNT_PROMPT = (
+    "How many ways would you like to split it?"
+)
+
+CHECKOUT_SPLIT_COUNT_REPROMPT = (
+    "Please tell me a number — how many people are splitting the bill?"
+)
+
+CHECKOUT_CONFIRMATION_NO_SPLIT_TEMPLATE = (
+    "All set, {name}. Your total is {total}, paying by {payment}. "
+    "We'll have your order ready for pickup at {pickup_time}. "
+    "Thank you for your order."
+)
+
+CHECKOUT_CONFIRMATION_WITH_SPLIT_TEMPLATE = (
+    "All set, {name}. Your total is {total}, split {split_count} ways "
+    "comes out to {per_person} per person, paying by {payment}. "
+    "We'll have your order ready for pickup at {pickup_time}. "
+    "Thank you for your order."
+)
+
+YES_RESPONSE_WORDS = {
+    "yes",
+    "yeah",
+    "yep",
+    "yup",
+    "sure",
+    "ok",
+    "okay",
+    "please",
+    "please do",
+    "absolutely",
+    "of course",
+    "definitely",
+    "sounds good",
+    "y",
+}
+
+NO_RESPONSE_WORDS = {
+    "no",
+    "nope",
+    "nah",
+    "no thanks",
+    "no thank you",
+    "not really",
+    "i'm good",
+    "im good",
+    "all good",
+    "n",
+}
+
+NAME_PREFIX_PHRASES = [
+    "my name is ",
+    "name is ",
+    "name's ",
+    "it's ",
+    "its ",
+    "this is ",
+    "i'm ",
+    "im ",
+    "i am ",
+    "call me ",
+    "the name is ",
+    "put it under ",
+    "put it for ",
+    "put down ",
+    "put ",
+    "for ",
+    "under ",
+]
+
+PICKUP_TIME_PREFIX_PHRASES = [
+    "at ",
+    "around ",
+    "about ",
+    "pick it up at ",
+    "pick up at ",
+    "pickup at ",
+    "pick it up around ",
+    "pick up around ",
+]
+
+PAYMENT_CARD_WORDS = {
+    "card",
+    "credit",
+    "credit card",
+    "debit",
+    "debit card",
+    "visa",
+    "mastercard",
+    "amex",
+}
+
+PAYMENT_CASH_WORDS = {
+    "cash",
+    "bill",
+    "bills",
+    "money",
+}
 
 RAG_NO_CONTEXT_MESSAGE = (
     "I do not see that information in the restaurant menu."
@@ -88,6 +235,11 @@ UNKNOWN_CRUST_MESSAGE = "I could not find that crust option."
 UPDATED_PIZZA_MESSAGE = "I updated your pizza."
 NO_LAST_REMOVED_MESSAGE = "No item has been removed yet."
 VOICE_INPUT_NOT_CAUGHT_MESSAGE = "I did not catch that. Please say that again."
+
+LLM_UNAVAILABLE_MESSAGE = (
+    "Sorry, I'm having trouble understanding right now. "
+    "Could you rephrase that, or try a simpler request?"
+)
 
 REMOVE_TOPPING_RESPONSE_TEMPLATE = "Removed {toppings} from your pizza."
 ADD_TOPPING_RESPONSE_TEMPLATE = "Added {toppings} to your pizza."

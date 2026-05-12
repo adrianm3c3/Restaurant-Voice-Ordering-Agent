@@ -5,6 +5,7 @@ from src.prompts import (
     RAG_SYSTEM_PROMPT,
     RAG_USER_PROMPT_TEMPLATE,
 )
+from src.rag_fallback import keyword_fallback_faq_chunks
 from src.restaurant_text import (
     RAG_EMPTY_RESPONSE_MESSAGE,
     RAG_NO_CONTEXT_MESSAGE,
@@ -32,6 +33,9 @@ def answer_rag_question(question, menu, top_k=None):
     )
 
     if not retrieved_chunks:
+        retrieved_chunks = keyword_fallback_faq_chunks(question)
+
+    if not retrieved_chunks:
         return RAG_NO_CONTEXT_MESSAGE
 
     context = format_retrieved_context(
@@ -45,12 +49,15 @@ def answer_rag_question(question, menu, top_k=None):
         question=question,
     )
 
-    response = chat_completion(
-        system_prompt,
-        user_prompt,
-        temperature=CONFIG["rag_generation"]["temperature"],
-        max_tokens=CONFIG["rag_generation"]["max_tokens"],
-    )
+    try:
+        response = chat_completion(
+            system_prompt,
+            user_prompt,
+            temperature=CONFIG["rag_generation"]["temperature"],
+            max_tokens=CONFIG["rag_generation"]["max_tokens"],
+        )
+    except Exception:
+        return RAG_EMPTY_RESPONSE_MESSAGE
 
     if not response:
         return RAG_EMPTY_RESPONSE_MESSAGE

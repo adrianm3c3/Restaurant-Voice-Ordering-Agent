@@ -107,11 +107,14 @@ def parse_direct_menu_query(text):
 
 
 def parse_direct_retrieval_qa(text):
-    if any(marker in text for marker in RETRIEVAL_MARKERS):
-        return {
-            "intent": "retrieval_qa",
-            "query": text,
-        }
+    for marker in RETRIEVAL_MARKERS:
+        if marker == "meat" and "meat lovers" in text:
+            continue
+        if marker in text:
+            return {
+                "intent": "retrieval_qa",
+                "query": text,
+            }
 
     return None
 
@@ -187,6 +190,7 @@ def parse_direct_add(text, menu):
                     if (
                         re.search(r"\b12\s*piece\b", text)
                         or re.search(r"\b12\s*wings\b", text)
+                        or re.search(r"\btwelve\s*piece\b", text)
                     ):
                         item["size"] = "12 piece"
                         item["quantity"] = 1
@@ -194,6 +198,7 @@ def parse_direct_add(text, menu):
                     elif (
                         re.search(r"\b6\s*piece\b", text)
                         or re.search(r"\b6\s*wings\b", text)
+                        or re.search(r"\bsix\s*piece\b", text)
                     ):
                         item["size"] = "6 piece"
                         item["quantity"] = 1
@@ -216,6 +221,132 @@ def parse_direct_add(text, menu):
                 }
 
     return None
+
+
+def parse_direct_add_chicken_wings_without_order_phrase(text, menu):
+    """
+    Order chicken wings when the user gives size + wings but no ADD_ITEM_PHRASES
+    (e.g. \"a 12 piece chicken wings please\"). Otherwise parse_direct_add bails out
+    early and the LLM often returns wrong defaults (6 piece).
+    """
+    if not any(
+        re.search(rf"\b{re.escape(variant)}\b", text)
+        for variant in expand_name_variants("chicken wings")
+    ):
+        return None
+
+    if any(phrase in text for phrase in REMOVE_ITEM_PHRASES):
+        return None
+
+    item = {
+        "type": "side",
+        "name": "chicken wings",
+        "quantity": 1,
+    }
+
+    if (
+        re.search(r"\b12\s*piece\b", text)
+        or re.search(r"\b12\s*wings\b", text)
+        or re.search(r"\btwelve\s*piece\b", text)
+    ):
+        item["size"] = "12 piece"
+    elif (
+        re.search(r"\b6\s*piece\b", text)
+        or re.search(r"\b6\s*wings\b", text)
+        or re.search(r"\bsix\s*piece\b", text)
+    ):
+        item["size"] = "6 piece"
+    else:
+        item["needs_size_confirmation"] = True
+
+    return validate_side_item(item, menu)
+
+
+def _extract_pizza_removals_from_order_text(text, menu, matched_base):
+    """
+    Parse phrases like \"no olives\", \"without onions\", \"hold the peppers\"
+    into canonical topping / base-ingredient names for the given pizza base.
+    """
+    if matched_base not in menu["pizzas"]:
+        return []
+
+    base_ings = menu["pizzas"][matched_base].get("ingredients", [])
+    candidates = list(
+        dict.fromkeys(list(menu["toppings_price"].keys()) + list(base_ings)),
+    )
+
+    removals = []
+    for topping in sorted(candidates, key=len, reverse=True):
+        for variant in expand_name_variants(topping):
+            if len(variant) < 2:
+                continue
+            escaped = re.escape(variant)
+            if (
+                re.search(rf"\bno\s+{escaped}\b", text)
+                or re.search(rf"\bwithout\s+{escaped}\b", text)
+                or re.search(rf"\bhold\s+the\s+{escaped}\b", text)
+                or re.search(rf"\bhold\s+{escaped}\b", text)
+            ):
+                removals.append(topping)
+                break
+
+    return list(dict.fromkeys(removals))
+
+
+def parse_direct_add_pizza(text, menu):
+    """
+    Fast-path for ordering a named pizza without calling the LLM.
+
+    This must run before parse_direct_retrieval_qa: RETRIEVAL_MARKERS
+    includes the substring \"meat\", which would otherwise match inside
+    \"meat lovers\" and mis-route legitimate pizza orders to RAG.
+    """
+    if not any(phrase in text for phrase in ADD_ITEM_PHRASES):
+        return None
+
+    if re.search(r"\bdo you have\b", text):
+        return None
+
+    quantity = extract_quantity(text, default=1, max_word_number=10)
+
+    size = None
+    for s in CONFIG["menu_defaults"]["pizza_sizes"]:
+        if re.search(rf"\b{re.escape(s)}\b", text):
+            size = s
+            break
+
+    crust = None
+    for crust_name in sorted(menu["crust_price"].keys(), key=len, reverse=True):
+        for variant in expand_name_variants(crust_name):
+            if re.search(rf"\b{re.escape(variant)}\b", text):
+                crust = crust_name
+                break
+        if crust:
+            break
+
+    matched_base = None
+    for pizza_name in sorted(menu["pizzas"].keys(), key=len, reverse=True):
+        for variant in expand_name_variants(pizza_name):
+            if re.search(rf"\b{re.escape(variant)}\b", text):
+                matched_base = pizza_name
+                break
+        if matched_base:
+            break
+
+    if not matched_base:
+        return None
+
+    item = {
+        "type": "pizza",
+        "size": size,
+        "base": matched_base,
+        "crust": crust,
+        "toppings": [],
+        "removals": _extract_pizza_removals_from_order_text(text, menu, matched_base),
+        "quantity": quantity,
+    }
+
+    return validate_pizza_item(item, menu)
 
 
 def parse_direct_pizza_modification(text, menu):
@@ -368,7 +499,13 @@ def parse_intent(user_text, menu):
     if direct:
         return direct
 
+    # Pizza topping/crust tweaks must win over parse_direct_add_pizza;
+    # otherwise "add extra cheese to my pizza" matches base "cheese".
     direct = parse_direct_pizza_modification(text, menu)
+    if direct:
+        return direct
+
+    direct = parse_direct_add_pizza(text, menu)
     if direct:
         return direct
 
@@ -377,6 +514,10 @@ def parse_intent(user_text, menu):
         return direct
 
     direct = parse_direct_retrieval_qa(text)
+    if direct:
+        return direct
+
+    direct = parse_direct_add_chicken_wings_without_order_phrase(text, menu)
     if direct:
         return direct
 
@@ -403,12 +544,17 @@ def parse_intent(user_text, menu):
         user_text=text,
     )
 
-    raw = chat_completion(
-        INTENT_PARSER_SYSTEM_PROMPT,
-        user_prompt,
-        temperature=CONFIG["parser"]["temperature"],
-        max_tokens=CONFIG["parser"]["max_tokens"],
-    )
+    try:
+        raw = chat_completion(
+            INTENT_PARSER_SYSTEM_PROMPT,
+            user_prompt,
+            temperature=CONFIG["parser"]["temperature"],
+            max_tokens=CONFIG["parser"]["max_tokens"],
+        )
+    except Exception:
+        # LLM unavailable (auth, network, rate limit, etc.).
+        # Keep the conversation alive instead of crashing.
+        return {"intent": "llm_unavailable"}
 
     parsed = extract_json_from_text(raw)
 
@@ -576,14 +722,17 @@ def validate_pizza_item(item, menu):
     if not isinstance(removals, list):
         removals = []
 
-    valid_toppings = set(menu["toppings_price"].keys())
-    toppings = [t for t in toppings if t in valid_toppings]
-    removals = [t for t in removals if t in valid_toppings]
-
     base_ingredients = [
         x.lower()
         for x in menu["pizzas"][base].get("ingredients", [])
     ]
+    base_ingredients_set = set(base_ingredients)
+
+    valid_removals = set(menu["toppings_price"].keys()) | base_ingredients_set
+    removals = [t for t in removals if t in valid_removals]
+
+    valid_toppings = set(menu["toppings_price"].keys())
+    toppings = [t for t in toppings if t in valid_toppings]
 
     toppings = [
         t for t in toppings

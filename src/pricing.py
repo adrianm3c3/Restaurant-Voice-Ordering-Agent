@@ -168,3 +168,9 @@ def compute_total_with_tax(order, menu, tax_rate=None):
         "tax": tax,
         "total": total,
     }
+
+
+def compute_order_total(order, menu):
+    """Return only the order total (no tax/subtotal breakdown)."""
+    total = compute_subtotal(order, menu)
+    return {"total": round(total, 2)}

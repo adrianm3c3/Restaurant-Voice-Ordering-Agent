@@ -16,6 +16,8 @@ def test_customer_can_ask_menu_question_add_pizza_and_checkout():
         "last_removed": None,
         "last_modified": None,
         "pending_action": None,
+        "checkout_step": None,
+        "checkout_info": None,
     }
 
     response = handle_user_input(
@@ -50,9 +52,9 @@ def test_customer_can_ask_menu_question_add_pizza_and_checkout():
         MENU,
         state,
     )
-    assert "subtotal" in response.lower()
-    assert "tax" in response.lower()
     assert "total" in response.lower()
+    assert "tax" not in response.lower()
+    assert "subtotal" not in response.lower()
 
     response = handle_user_input(
         "i want to checkout now",
@@ -60,7 +62,87 @@ def test_customer_can_ask_menu_question_add_pizza_and_checkout():
         MENU,
         state,
     )
+    assert "name for the order" in response.lower()
+    assert state["checkout_step"] == "name"
+
+    response = handle_user_input("my name is John", order_manager, MENU, state)
+    assert "john" in response.lower()
+    assert state["checkout_step"] == "pickup_time"
+
+    response = handle_user_input("7pm", order_manager, MENU, state)
+    assert "cash or card" in response.lower()
+    assert state["checkout_step"] == "payment"
+
+    response = handle_user_input("card", order_manager, MENU, state)
+    assert "split the bill" in response.lower()
+    assert state["checkout_step"] == "split_ask"
+
+    response = handle_user_input("yes", order_manager, MENU, state)
+    assert "how many" in response.lower()
+    assert state["checkout_step"] == "split_count"
+
+    response = handle_user_input("2", order_manager, MENU, state)
     assert "thank you for your order" in response.lower()
+    assert "per person" in response.lower()
+    assert state["checkout_step"] is None
+
+
+@pytest.mark.user_story("US-03")
+def test_checkout_without_splitting_bill():
+    """
+    Given the customer has an item in their order
+    When they checkout, provide name/pickup/payment, and decline splitting
+    Then the assistant confirms without per-person breakdown
+    """
+    order_manager = OrderManager()
+    state = {
+        "last_removed": None,
+        "last_modified": None,
+        "pending_action": None,
+        "checkout_step": None,
+        "checkout_info": None,
+    }
+
+    handle_user_input("add a medium cheese pizza", order_manager, MENU, state)
+
+    response = handle_user_input("checkout", order_manager, MENU, state)
+    assert "name for the order" in response.lower()
+
+    handle_user_input("Alice", order_manager, MENU, state)
+    handle_user_input("6:30pm", order_manager, MENU, state)
+    handle_user_input("cash", order_manager, MENU, state)
+    response = handle_user_input("no", order_manager, MENU, state)
+
+    assert "alice" in response.lower()
+    assert "6:30pm" in response.lower()
+    assert "cash" in response.lower()
+    assert "per person" not in response.lower()
+    assert "thank you for your order" in response.lower()
+    assert state["checkout_step"] is None
+
+
+@pytest.mark.user_story("US-04")
+def test_checkout_can_be_cancelled():
+    """
+    Given the customer started checkout
+    When they say 'cancel' during the flow
+    Then the checkout flow is aborted and they can keep ordering
+    """
+    order_manager = OrderManager()
+    state = {
+        "last_removed": None,
+        "last_modified": None,
+        "pending_action": None,
+        "checkout_step": None,
+        "checkout_info": None,
+    }
+
+    handle_user_input("add a medium cheese pizza", order_manager, MENU, state)
+    handle_user_input("checkout", order_manager, MENU, state)
+
+    response = handle_user_input("cancel", order_manager, MENU, state)
+    assert "cancelled" in response.lower()
+    assert state["checkout_step"] is None
 
 
 @pytest.mark.user_story("US-02")

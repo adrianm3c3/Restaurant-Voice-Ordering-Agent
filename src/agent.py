@@ -1,4 +1,5 @@
 import json
+import re
 
 from src.config import CONFIG
 from src.intent_parser import parse_intent
@@ -10,9 +11,23 @@ from src.restaurant_text import (
     ADD_TOPPING_RESPONSE_TEMPLATE,
     CHICKEN_WINGS_SIZE_PROMPT,
     CHICKEN_WINGS_SIZE_REPROMPT,
+    CHECKOUT_CANCEL_WORDS,
+    CHECKOUT_CANCELLED_MESSAGE,
     CHECKOUT_COMPLETION_MARKERS,
+    CHECKOUT_CONFIRMATION_NO_SPLIT_TEMPLATE,
+    CHECKOUT_CONFIRMATION_WITH_SPLIT_TEMPLATE,
     CHECKOUT_EMPTY_MESSAGE,
+    CHECKOUT_NAME_REPROMPT,
+    CHECKOUT_PAYMENT_PROMPT,
+    CHECKOUT_PAYMENT_REPROMPT,
+    CHECKOUT_PICKUP_PROMPT,
+    CHECKOUT_PICKUP_REPROMPT,
+    CHECKOUT_SPLIT_COUNT_PROMPT,
+    CHECKOUT_SPLIT_COUNT_REPROMPT,
+    CHECKOUT_SPLIT_PROMPT,
+    CHECKOUT_SPLIT_REPROMPT,
     CHECKOUT_THANK_YOU_MESSAGE,
+    CHECKOUT_TOTAL_AND_NAME_PROMPT,
     DESCRIBE_PIZZA_EXTRAS_SUFFIX,
     DESCRIBE_PIZZA_NO_PIZZA_MESSAGE,
     DESCRIBE_PIZZA_REMOVALS_SUFFIX,
@@ -22,16 +37,22 @@ from src.restaurant_text import (
     EXIT_WORDS,
     GREETING_TEMPLATE,
     LAST_REMOVED_TEMPLATE,
+    LLM_UNAVAILABLE_MESSAGE,
     MENU_CATEGORY_FALLBACK_MESSAGE,
     MENU_CATEGORY_TEMPLATES,
+    NAME_PREFIX_PHRASES,
     NO_LAST_REMOVED_MESSAGE,
     NO_MATCHING_ITEM_TEMPLATE,
     NO_MATCHING_PIZZA_TEMPLATE,
+    NO_RESPONSE_WORDS,
     NO_REMOVE_MESSAGE,
     ORDER_COUNT_TEMPLATE,
     ORDER_SUMMARY_PREFIX,
+    PAYMENT_CARD_WORDS,
+    PAYMENT_CASH_WORDS,
     PENDING_ACTION_CANCEL_MESSAGE,
     PENDING_ACTION_FAILED_MESSAGE,
+    PICKUP_TIME_PREFIX_PHRASES,
     PIZZA_MODIFY_NOT_FOUND_MESSAGE,
     REMOVED_ITEM_TEMPLATE,
     REMOVE_LAST_PIZZA_TEMPLATE,
@@ -45,7 +66,10 @@ from src.restaurant_text import (
     UPDATED_CRUST_TEMPLATE,
     UPDATED_PIZZA_MESSAGE,
     VOICE_INPUT_NOT_CAUGHT_MESSAGE,
+    YES_RESPONSE_WORDS,
 )
+
+from src.intent_parser import WORD_NUMBERS
 
 try:
     from voice.text_to_speech import speak
@@ -70,8 +94,6 @@ def format_currency(x):
 
 def build_total_response(result):
     return TOTAL_TEMPLATE.format(
-        subtotal=format_currency(result["subtotal"]),
-        tax=format_currency(result["tax"]),
         total=format_currency(result["total"]),
     )
 
@@ -79,6 +101,8 @@ def build_total_response(result):
 def format_topping_for_customer(topping):
     if topping == "mozzarella":
         return "cheese"
+    if topping == "black olives":
+        return "olives"
     return topping
 
 
@@ -337,7 +361,213 @@ def parse_wing_size_response(user_text):
     return None
 
 
+def is_cancel_request(user_text):
+    text = user_text.lower().strip().rstrip(".!?")
+    return text in CHECKOUT_CANCEL_WORDS
+
+
+def is_yes_response(user_text):
+    text = user_text.lower().strip().rstrip(".!?")
+    if text in YES_RESPONSE_WORDS:
+        return True
+    return any(text.startswith(w + " ") for w in YES_RESPONSE_WORDS)
+
+
+def is_no_response(user_text):
+    text = user_text.lower().strip().rstrip(".!?")
+    if text in NO_RESPONSE_WORDS:
+        return True
+    return any(text.startswith(w + " ") for w in NO_RESPONSE_WORDS)
+
+
+def parse_customer_name(user_text):
+    """Strip common lead-in phrases ('my name is ...', 'this is ...') and
+    return a tidy capitalized name. Returns None if nothing usable remains."""
+    text = user_text.strip().rstrip(".!?")
+
+    if not text:
+        return None
+
+    lowered = text.lower()
+    for prefix in NAME_PREFIX_PHRASES:
+        if lowered.startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+
+    text = text.strip(" ,.")
+
+    if not text:
+        return None
+
+    return " ".join(part.capitalize() for part in text.split())
+
+
+def parse_pickup_time(user_text):
+    """Return a tidy pickup time string, or None if empty."""
+    text = user_text.strip().rstrip(".!?")
+
+    if not text:
+        return None
+
+    lowered = text.lower()
+    for prefix in PICKUP_TIME_PREFIX_PHRASES:
+        if lowered.startswith(prefix):
+            text = text[len(prefix):].strip()
+            break
+
+    return text or None
+
+
+def parse_payment_method(user_text):
+    text = user_text.lower().strip().rstrip(".!?")
+
+    if not text:
+        return None
+
+    for word in PAYMENT_CARD_WORDS:
+        if re.search(rf"\b{re.escape(word)}\b", text):
+            return "card"
+
+    for word in PAYMENT_CASH_WORDS:
+        if re.search(rf"\b{re.escape(word)}\b", text):
+            return "cash"
+
+    return None
+
+
+def parse_split_count(user_text):
+    text = user_text.lower().strip().rstrip(".!?")
+
+    digit_match = re.search(r"\b(\d+)\b", text)
+    if digit_match:
+        value = int(digit_match.group(1))
+        return value if value >= 2 else None
+
+    for word, value in WORD_NUMBERS.items():
+        if value < 2:
+            continue
+        if re.search(rf"\b{re.escape(word)}\b", text):
+            return value
+
+    return None
+
+
+def start_checkout_flow(order_manager, menu, state):
+    order = order_manager.get_order()
+
+    if not order:
+        return CHECKOUT_EMPTY_MESSAGE
+
+    summary = build_order_summary(order)
+    result = compute_total_with_tax(order, menu)
+
+    state["checkout_info"] = {
+        "tax": result["tax"],
+        "total": result["total"],
+    }
+    state["checkout_step"] = "name"
+
+    return CHECKOUT_TOTAL_AND_NAME_PROMPT.format(
+        summary=summary,
+        totals=build_total_response(result),
+    )
+
+
+def reset_checkout_state(state):
+    state["checkout_step"] = None
+    state["checkout_info"] = None
+
+
+def build_checkout_confirmation(info):
+    total = format_currency(info["total"])
+    split_count = info.get("split_count")
+
+    if split_count and split_count > 1:
+        per_person = round(info["total"] / split_count, 2)
+        return CHECKOUT_CONFIRMATION_WITH_SPLIT_TEMPLATE.format(
+            name=info["name"],
+            total=total,
+            split_count=split_count,
+            per_person=format_currency(per_person),
+            payment=info["payment"],
+            pickup_time=info["pickup_time"],
+        )
+
+    return CHECKOUT_CONFIRMATION_NO_SPLIT_TEMPLATE.format(
+        name=info["name"],
+        total=total,
+        payment=info["payment"],
+        pickup_time=info["pickup_time"],
+    )
+
+
+def handle_checkout_step(user_text, state):
+    """Drives the multi-step checkout: name -> pickup -> payment -> split."""
+    if is_cancel_request(user_text):
+        reset_checkout_state(state)
+        return CHECKOUT_CANCELLED_MESSAGE
+
+    step = state.get("checkout_step")
+    info = state.get("checkout_info") or {}
+
+    if step == "name":
+        name = parse_customer_name(user_text)
+        if not name:
+            return CHECKOUT_NAME_REPROMPT
+        info["name"] = name
+        state["checkout_info"] = info
+        state["checkout_step"] = "pickup_time"
+        return CHECKOUT_PICKUP_PROMPT.format(name=name)
+
+    if step == "pickup_time":
+        pickup_time = parse_pickup_time(user_text)
+        if not pickup_time:
+            return CHECKOUT_PICKUP_REPROMPT
+        info["pickup_time"] = pickup_time
+        state["checkout_info"] = info
+        state["checkout_step"] = "payment"
+        return CHECKOUT_PAYMENT_PROMPT.format(pickup_time=pickup_time)
+
+    if step == "payment":
+        payment = parse_payment_method(user_text)
+        if not payment:
+            return CHECKOUT_PAYMENT_REPROMPT
+        info["payment"] = payment
+        state["checkout_info"] = info
+        state["checkout_step"] = "split_ask"
+        return CHECKOUT_SPLIT_PROMPT.format(payment=payment)
+
+    if step == "split_ask":
+        if is_yes_response(user_text):
+            state["checkout_step"] = "split_count"
+            return CHECKOUT_SPLIT_COUNT_PROMPT
+        if is_no_response(user_text):
+            info["split_count"] = 1
+            state["checkout_info"] = info
+            confirmation = build_checkout_confirmation(info)
+            reset_checkout_state(state)
+            return confirmation
+        return CHECKOUT_SPLIT_REPROMPT
+
+    if step == "split_count":
+        count = parse_split_count(user_text)
+        if not count:
+            return CHECKOUT_SPLIT_COUNT_REPROMPT
+        info["split_count"] = count
+        state["checkout_info"] = info
+        confirmation = build_checkout_confirmation(info)
+        reset_checkout_state(state)
+        return confirmation
+
+    # Defensive: unknown step. Clear and bail.
+    reset_checkout_state(state)
+    return VOICE_INPUT_NOT_CAUGHT_MESSAGE
+
+
 def handle_user_input(user_text, order_manager, menu, state):
+
+    if state.get("checkout_step"):
+        return handle_checkout_step(user_text, state)
 
     pending_wing_item = state.get("pending_wing_item")
     if pending_wing_item:
@@ -514,19 +744,7 @@ def handle_user_input(user_text, order_manager, menu, state):
         return NO_LAST_REMOVED_MESSAGE
 
     if intent == "checkout":
-        order = order_manager.get_order()
-
-        if not order:
-            return CHECKOUT_EMPTY_MESSAGE
-
-        summary = build_order_summary(order)
-        result = compute_total_with_tax(order, menu)
-
-        return (
-            f"{summary} "
-            f"{build_total_response(result)} "
-            f"{CHECKOUT_THANK_YOU_MESSAGE}"
-        )
+        return start_checkout_flow(order_manager, menu, state)
 
     if intent == "retrieval_qa":
         query = parsed.get("query", user_text)
@@ -539,6 +757,9 @@ def handle_user_input(user_text, order_manager, menu, state):
             return answer_rag_question(user_text, menu)
 
         return handle_menu_query(category, menu)
+
+    if intent == "llm_unavailable":
+        return LLM_UNAVAILABLE_MESSAGE
 
     return answer_rag_question(user_text, menu)
 
@@ -556,6 +777,8 @@ def run_agent(use_voice=True):
         "last_removed": None,
         "last_modified": None,
         "pending_wing_item": None,
+        "checkout_step": None,
+        "checkout_info": None,
     }
 
     restaurant_name = CONFIG["restaurant"]["name"]
@@ -564,7 +787,11 @@ def run_agent(use_voice=True):
     speak_or_print(greeting, use_voice)
 
     while True:
-        user_text = input("You: ")
+        try:
+            user_text = input("You: ")
+        except (EOFError, KeyboardInterrupt):
+            print()
+            break
 
         if not user_text or not user_text.strip():
             speak_or_print(VOICE_INPUT_NOT_CAUGHT_MESSAGE, use_voice)
@@ -573,7 +800,12 @@ def run_agent(use_voice=True):
         if user_text.lower().strip() in EXIT_WORDS:
             break
 
-        response = handle_user_input(user_text, order_manager, MENU, state)
+        try:
+            response = handle_user_input(user_text, order_manager, MENU, state)
+        except Exception as exc:
+            if CONFIG["runtime"]["debug"]:
+                print("DEBUG handle_user_input error:", exc)
+            response = LLM_UNAVAILABLE_MESSAGE
 
         speak_or_print(response, use_voice)
 
