@@ -350,7 +350,7 @@ ngrok http 5000
 3. Copy the HTTPS ngrok URL.
 4. In Twilio phone number voice settings, set:
 
-Webhook URL: https://YOUR-NGROK-DOMAIN/voice  
+Webhook URL: https://banked-fervor-scouts.ngrok-free.dev/voice
 Method: HTTP POST
 
 5. Call the Twilio phone number.
