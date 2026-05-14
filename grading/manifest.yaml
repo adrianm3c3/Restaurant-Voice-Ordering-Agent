@@ -1,0 +1,57 @@
+project:
+  name: restaurant-voice-ordering-agent
+  version: 1.0.0
+  commit_sha: "e4713197cfdc4f72999e38e8cb09493fd83effee"
+
+runtime:
+  python_version: "3.10"
+  docker_base_image: "python:3.10-slim"
+  operating_system_tested:
+    - "Windows 11"
+    - "Docker Linux container"
+
+reproducibility:
+  seed: 42
+  deterministic_tests: true
+  build_command: "docker compose up --build"
+  test_command: "pytest tests --junitxml=reports/user_stories.xml --cov=src --cov-report=xml:reports/coverage.xml --cov-report=html:reports/coverage_html -v"
+  reproduce_command: "make reproduce"
+
+data:
+  menu:
+    id: "restaurant-menu-v1"
+    path: "data/menu/menu.json"
+    type: "synthetic pizza restaurant menu"
+    license: "course project synthetic data"
+
+  generated_vector_store:
+    id: "chroma-pizza-menu-v1"
+    path: "data/vector_store/chroma_db"
+    generated_by: "python -m src.build_vector_store"
+    committed_to_repo: false
+
+models:
+  chat_model:
+    provider: "OpenAI-compatible endpoint"
+    default_model_id: "meta-llama/Llama-3.1-8B-Instruct"
+    environment_variables:
+      - "UTSA_BASE_URL"
+      - "UTSA_API_KEY"
+      - "UTSA_MODEL"
+      - "PARSER_MODEL"
+
+  embedding_model:
+    provider: "sentence-transformers"
+    model_id: "all-MiniLM-L6-v2"
+    environment_variable: "EMBED_MODEL"
+
+  vector_store:
+    provider: "ChromaDB"
+    collection_name: "pizza_menu"
+
+expected_metrics:
+  headline_test_result: "22 tests passed"
+  user_story_pass_rate: "100% ± 0%"
+  integration_pass_rate: "100% ± 0%"
+  rag_integration_pass_rate: "100% ± 0%"
+  docker_health: "HTTP 200"

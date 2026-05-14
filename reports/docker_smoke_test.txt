@@ -1,0 +1,46 @@
+Docker Smoke Test
+
+Date: 2026-05-14
+
+Commit:
+e4713197cfdc4f72999e38e8cb09493fd83effee
+
+Command:
+docker compose up --build
+
+Result:
+PASS
+
+Observed:
+- Docker image built successfully.
+- Container restaurant-voice-agent started.
+- Flask server served on port 5000.
+- Health endpoint returned HTTP 200.
+- POST /api/chat added a large pepperoni pizza.
+- POST /api/chat preserved session state and returned the order total.
+
+Health check:
+Invoke-RestMethod http://127.0.0.1:5000/health
+
+Observed response:
+status: ok
+
+API order test:
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://127.0.0.1:5000/api/chat" `
+  -ContentType "application/json" `
+  -Body '{"session_id":"demo","text":"I want a large pepperoni pizza"}'
+
+Observed reply:
+Added 1 large pepperoni pizza with hand tossed.
+
+API total test:
+Invoke-RestMethod `
+  -Method Post `
+  -Uri "http://127.0.0.1:5000/api/chat" `
+  -ContentType "application/json" `
+  -Body '{"session_id":"demo","text":"what is my total"}'
+
+Observed reply:
+Your total is $14.04.

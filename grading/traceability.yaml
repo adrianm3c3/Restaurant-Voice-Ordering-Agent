@@ -1,0 +1,101 @@
+stories:
+  US-01:
+    title: Place a Pizza Order
+    spec_sections:
+      - "FR-01 Add Item"
+      - "Public Interfaces"
+    source_modules:
+      - "twilio_phone_server.py"
+      - "src/agent.py"
+      - "src/intent_parser.py"
+      - "src/order_manager.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_01_place_pizza_order"
+
+  US-02:
+    title: Ask for Order Total
+    spec_sections:
+      - "FR-04 Total"
+    source_modules:
+      - "src/agent.py"
+      - "src/pricing.py"
+      - "src/order_manager.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_02_order_total"
+
+  US-03:
+    title: Modify Pizza Toppings
+    spec_sections:
+      - "FR-02 Modify Pizza"
+    source_modules:
+      - "src/agent.py"
+      - "src/intent_parser.py"
+      - "src/order_manager.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_03_modify_pizza_toppings"
+
+  US-04:
+    title: Ask a Menu Ingredient Question
+    spec_sections:
+      - "FR-05 Menu QA"
+    source_modules:
+      - "src/agent.py"
+      - "src/rag_qa.py"
+      - "src/knowledge_builder.py"
+      - "src/retriever_chroma.py"
+      - "src/prompts.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_04_menu_ingredient_question_routes_to_rag"
+      - "tests/integration/test_rag_integration.py::test_real_rag_answers_pepperoni_question"
+
+  US-05:
+    title: Complete Checkout
+    spec_sections:
+      - "FR-06 Checkout"
+    source_modules:
+      - "src/agent.py"
+      - "src/order_manager.py"
+      - "src/pricing.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_05_checkout_flow"
+
+  US-06:
+    title: Reject Irrelevant Question
+    spec_sections:
+      - "FR-07 Out-of-Scope Handling"
+    source_modules:
+      - "src/agent.py"
+      - "src/rag_qa.py"
+      - "src/restaurant_text.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_06_irrelevant_question_routes_to_restaurant_fallback"
+      - "tests/integration/test_rag_integration.py::test_real_rag_rejects_irrelevant_question"
+
+  US-07:
+    title: Clarify Chicken Wing Size
+    spec_sections:
+      - "FR-01 Add Item"
+    source_modules:
+      - "src/agent.py"
+      - "src/intent_parser.py"
+      - "src/order_manager.py"
+    tests:
+      - "tests/user_stories/test_ordering_stories.py::test_us_07_chicken_wing_size_clarification"
+
+api_integration:
+  API-01:
+    title: API Chat Preserves Session State
+    source_modules:
+      - "twilio_phone_server.py"
+      - "src/agent.py"
+      - "src/order_manager.py"
+    tests:
+      - "tests/integration/test_api_chat.py::test_api_chat_add_pizza_and_total"
+
+  API-02:
+    title: API Chat Separates Sessions
+    source_modules:
+      - "twilio_phone_server.py"
+      - "src/order_manager.py"
+    tests:
+      - "tests/integration/test_api_chat.py::test_api_chat_separate_sessions_do_not_share_orders"
