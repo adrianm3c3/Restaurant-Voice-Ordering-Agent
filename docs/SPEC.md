@@ -86,7 +86,7 @@ Response:
 
 The system uses OpenAI-compatible large language models to handle the conversation, intent parsing, and semantic embedding generation for ChromaDB retrieval.
 
-Default model configuration:
+Model configuration:
 
 Agent model:
 `meta-llama/Llama-3.1-8B-Instruct`
@@ -112,5 +112,108 @@ Relevant configuration:
     "embedding": "all-MiniLM-L6-v2",
 }
 ```
+
+### 5.2 Prompt Design
+
+Prompt templates are stored in:
+
+`src/prompts.py`
+
+The system separates prompts into:
+- intent parsing prompts
+- retrieval-augmented generation (RAG) prompts
+
+This separation allows the system to use different constraints and behaviors
+for structured parsing versus conversational answering.
+
+---
+
+#### 5.2.1 Intent Parsing Prompts
+
+The intent parser prompt converts natural language restaurant requests
+into structured JSON intents.
+
+Primary prompt variables:
+- menu context
+- customer request text
+
+The parser prompt enforces:
+- valid JSON-only output
+- no markdown or explanations
+- intent restriction to supported restaurant actions
+- menu item grounding to known menu data
+
+Intents Performed:
+- add_item
+- remove_named_item
+- remove_item
+- get_total
+- checkout
+- menu_query
+- retrieval_qa
+- get_order_count
+- get_order_summary
+- ask_last_removed
+- modify_last_pizza
+- change_pizza_crust
+- unknown
+
+The parser prompt defines explicit JSON schemas for:
+- pizza orders
+- sides
+- drinks
+- desserts
+- retrieval queries
+- pizza modifications
+- crust changes
+
+The parser prompt also constrains the model to:
+- avoid hallucinated menu items
+- avoid adding toppings not explicitly requested
+- return "unknown" when classification confidence is low
+
+The parser uses deterministic settings for reproducibility and decrease output variability:
+- temperature = 0.0
+- strict JSON output
+
+---
+
+#### 5.2.2 Retrieval-Augmented Generation (RAG) Prompts
+
+The RAG prompts answer menu knowledge questions using retrieved
+restaurant information.
+
+The RAG system prompt instructs the model to:
+- answer only from retrieved context
+- avoid hallucinated menu items
+- avoid unsupported nutrition claims
+- avoid unsupported allergy guarantees
+- avoid unsupported dietary labels
+- return uncertainty when information is unavailable
+
+The RAG prompt uses strict rules to reduce hallucinations.
+
+The retrieved context may include:
+- menu descriptions
+- ingredients
+- pricing
+- FAQ entries
+- restaurant policies
+- modification policies
+
+The RAG user prompt injects:
+- retrieved restaurant information
+- customer question
+
+into the final prompt sent to the conversational model.
+
+The generated response should:
+- remain grounded in retrieved information
+- remain short and conversational
+- be suitable for phone-based interaction
+- avoid unsupported assumptions
+
+If retrieved information does not support the requested claim,
+the system should state that the information is unavailable.
 
 
