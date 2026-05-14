@@ -122,7 +122,7 @@ ngrok http 5000
 
 Then configure the Twilio phone number voice webhook:
 
-https://YOUR-NGROK-DOMAIN/voice
+https://banked-fervor-scouts.ngrok-free.dev/voice
 
 Method:
 
