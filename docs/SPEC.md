@@ -84,7 +84,7 @@ Response:
 
 ### 5.1 Conversational, Intent Parsing, and Embedding Models
 
-The system uses OpenAI-compatible large language models to handle the conversation and fallback intent parsing.
+The system uses OpenAI-compatible large language models to handle the conversation, intent parsing, and semantic embedding generation for ChromaDB retrieval.
 
 Default model configuration:
 
