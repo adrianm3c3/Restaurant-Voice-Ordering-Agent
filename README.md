@@ -46,7 +46,7 @@ For grading and reproducibility, the recommended path is the Docker + `/api/chat
 
 ### 1. Clone the repository
 
-git clone <REPOSITORY_URL>  
+git clone https://github.com/adrianm3c3/Restaurant-Voice-Ordering-Agent.git
 cd ResturauntProject
 
 ### 2. Create environment file
