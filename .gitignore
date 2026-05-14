@@ -1,0 +1,37 @@
+# Environment / secrets
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+credentials.json
+
+# Python environments / caches
+venv/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+
+# Test / coverage artifacts
+.coverage
+htmlcov/
+reports/coverage_html/
+
+# Local audio/debug files
+audio.wav
+voice/audio.wav
+*.wav
+
+# Local full environment dump
+requirements-full.txt
+
+# Chroma/vector store generated locally
+chroma_store/
+data/vector_store/
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
