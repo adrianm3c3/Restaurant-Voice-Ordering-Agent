@@ -78,3 +78,39 @@ Response:
 {
   "status": "ok"
 }
+```
+
+## 5. Model and Prompt Selection
+
+### 5.1 Conversational, Intent Parsing, and Embedding Models
+
+The system uses OpenAI-compatible large language models to handle the conversation and fallback intent parsing.
+
+Default model configuration:
+
+Agent model:
+`meta-llama/Llama-3.1-8B-Instruct`
+
+Parser model:
+`meta-llama/Llama-3.1-8B-Instruct`
+
+Embedding model:
+`sentence-transformers/all-MiniLM-L6-v2`
+
+The models are accessed through an OpenAI-compatible API endpoint
+configured through environment variables.
+
+Configuration source:
+`src/config.py`
+
+Relevant configuration:
+
+```python
+"model": {
+    "agent": "meta-llama/Llama-3.1-8B-Instruct",
+    "parser": "meta-llama/Llama-3.1-8B-Instruct",
+    "embedding": "all-MiniLM-L6-v2",
+}
+```
+
+
