@@ -35,3 +35,4 @@ data/vector_store/
 .DS_Store
 .idea/
 .vscode/
+.env

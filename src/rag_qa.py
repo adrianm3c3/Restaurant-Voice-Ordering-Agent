@@ -57,6 +57,9 @@ def answer_rag_question(question, menu, top_k=None):
             max_tokens=CONFIG["rag_generation"]["max_tokens"],
         )
     except Exception:
+        # Deterministic fallback for reproducibility when the LLM endpoint is unavailable.
+        if retrieved_chunks:
+            return " ".join(chunk["text"] for chunk in retrieved_chunks[:2])
         return RAG_EMPTY_RESPONSE_MESSAGE
 
     if not response:

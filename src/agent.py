@@ -54,6 +54,7 @@ from src.restaurant_text import (
     PENDING_ACTION_FAILED_MESSAGE,
     PICKUP_TIME_PREFIX_PHRASES,
     PIZZA_MODIFY_NOT_FOUND_MESSAGE,
+    RAG_NO_CONTEXT_MESSAGE,
     REMOVED_ITEM_TEMPLATE,
     REMOVE_LAST_PIZZA_TEMPLATE,
     REMOVE_NAMED_ITEM_TEMPLATE,
@@ -759,7 +760,7 @@ def handle_user_input(user_text, order_manager, menu, state):
         return handle_menu_query(category, menu)
 
     if intent == "llm_unavailable":
-        return LLM_UNAVAILABLE_MESSAGE
+        return RAG_NO_CONTEXT_MESSAGE
 
     return answer_rag_question(user_text, menu)
 

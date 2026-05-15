@@ -13,6 +13,8 @@ def build_client():
     return OpenAI(
         base_url=CONFIG["api"]["base_url"],
         api_key=CONFIG["api"]["api_key"],
+        timeout=10.0,
+        max_retries=0,
     )
 
 
