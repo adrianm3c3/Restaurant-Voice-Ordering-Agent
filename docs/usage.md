@@ -376,3 +376,6 @@ The phone bot should add the pizza and then return the same total as the API flo
 - The `/api/chat` endpoint is preferred for grading because it is deterministic and does not require a phone call.
 - Twilio mode uses Twilio speech-to-text and Twilio text-to-speech.
 - Local Whisper and pyttsx3 scripts are optional and are not required for this walkthrough.
+- Optional phone demo: after starting the Docker server on port `5000` and starting the ngrok tunnel, the Twilio demo number `+1 (210) 981-4764` can be called to test the live voice-ordering flow.
+- The Twilio webhook must point to `https://banked-fervor-scouts.ngrok-free.dev/voice` with method `HTTP POST`.
+- If the Docker server or ngrok tunnel is not running, the phone number will not reach the ordering agent.
