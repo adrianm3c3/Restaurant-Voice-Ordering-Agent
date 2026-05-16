@@ -368,6 +368,7 @@ The phone bot should add the pizza and then return the same total as the API flo
 
 ---
 
+
 ## Notes for Manual Walkthrough
 
 - Use a unique `session_id` for each story.
@@ -379,3 +380,13 @@ The phone bot should add the pizza and then return the same total as the API flo
 - Optional phone demo: after starting the Docker server on port `5000` and starting the ngrok tunnel, the Twilio demo number `+1 (210) 981-4764` can be called to test the live voice-ordering flow.
 - The Twilio webhook must point to `https://banked-fervor-scouts.ngrok-free.dev/voice` with method `HTTP POST`.
 - If the Docker server or ngrok tunnel is not running, the phone number will not reach the ordering agent.
+
+### Optional Phone Demo Requirements
+
+The official grading path is `/api/chat`. Phone mode is optional.
+
+To use the Twilio demo number, run:
+
+```bash
+docker compose up --build -d
+ngrok http --domain=banked-fervor-scouts.ngrok-free.dev 5000
