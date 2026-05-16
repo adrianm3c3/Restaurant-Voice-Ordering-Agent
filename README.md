@@ -8,7 +8,7 @@ This project demonstrates an NLP/agentic AI restaurant ordering system. The appl
 
 The project supports three interaction paths:
 
-1. Twilio voice mode: caller speaks to a Twilio phone number.
+1. Twilio voice mode: caller speaks to a Twilio phone number. Phone number is +1 210 981 4764 with limited minutes (around 10 minutes)
 2. API mode: tester sends text to `/api/chat`.
 3. Debug/local mode: developer sends JSON requests to test the agent without Twilio.
 
